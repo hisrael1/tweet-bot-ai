@@ -109,11 +109,12 @@ const openRouterRequest = async (userInput: any, relevantTweets: any): Promise<s
 };
 
 // main function sets up chroma and retuns the message
-const retriveRelevantTweets = async (prompt: string) => {
+const retriveRelevantTweets = async (prompt: string, username: string) => {
   await deleteOldUserTweetsCollection();
   const collection = await createNewTweetsCollection();
   const documentsAndIds = await fetchTweets(
-    "https://fabxmporizzqflnftavs.supabase.co/storage/v1/object/public/archives/defenderofbasic/archive.json"
+    `https://fabxmporizzqflnftavs.supabase.co/storage/v1/object/public/archives/${username}/archive.json`
+    // "https://fabxmporizzqflnftavs.supabase.co/storage/v1/object/public/archives/defenderofbasic/archive.json"
   );
   await collection.add(documentsAndIds);
 
@@ -147,8 +148,8 @@ app.listen(port, () => {
 });
 
 app.post("/api/query", async (req, res) => {
-  const { prompt } = req.body;
-  const message = await retriveRelevantTweets(prompt);
+  const { prompt, user } = req.body;
+  const message = await retriveRelevantTweets(prompt, user);
   res.json(message);
 });
 

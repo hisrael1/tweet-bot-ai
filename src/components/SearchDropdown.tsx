@@ -11,7 +11,7 @@ interface SearchDropdownProps {
   placeholder?: string;
 }
 
-export const SearchDropdown = ({ users, onSelect, placeholder = "Search personas..." }: SearchDropdownProps) => {
+export const SearchDropdown = ({ users, onSelect, placeholder = "Search for someone..." }: SearchDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -66,16 +66,17 @@ export const SearchDropdown = ({ users, onSelect, placeholder = "Search personas
             <div
               key={user.username}
               onClick={() => handleSelect(user)}
-              className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+              className="group flex items-center px-4 py-3.5 hover:bg-blue-50 cursor-pointer transition-colors duration-150 border-b border-gray-50 last:border-b-0"
             >
-              <img
-                src={user.avatar}
-                alt={user.username}
-                className="w-8 h-8 rounded-full mr-3"
-              />
-              <div>
-                <div className="font-medium text-gray-900">@{user.username}</div>
-                <div className="text-sm text-gray-500">AI Persona</div>
+              <div className="flex-1">
+                <div className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors duration-150">
+                  @{user.username}
+                </div>
+              </div>
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
           ))}
@@ -83,8 +84,14 @@ export const SearchDropdown = ({ users, onSelect, placeholder = "Search personas
       )}
 
       {isOpen && filteredUsers.length === 0 && (
-        <div className="absolute z-10 w-full mt-2 bg-white rounded-xl shadow-lg border border-gray-100 p-4 text-center text-gray-500">
-          No personas found
+        <div className="absolute z-10 w-full mt-2 bg-white rounded-xl shadow-lg border border-gray-100 p-4">
+          <div className="text-center text-gray-500">
+            <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="font-medium">No matches found</p>
+            <p className="text-sm mt-1">Try a different search term</p>
+          </div>
         </div>
       )}
     </div>

@@ -26,8 +26,9 @@ export const ChatInterface = ({ selectedUser }: ChatInterfaceProps) => {
     },
   ]);
   const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!inputMessage.trim()) return;
 
@@ -39,16 +40,44 @@ export const ChatInterface = ({ selectedUser }: ChatInterfaceProps) => {
     };
     setMessages((prev) => [...prev, newMessage]);
     setInputMessage('');
+    setIsLoading(true);
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botResponse: Message = {
+    try {
+      const response = await fetch('http://localhost:3000/api/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: inputMessage,
+          user: selectedUser.username,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const botResponse = await response.json();
+      
+      const botMessage: Message = {
         id: messages.length + 2,
-        text: `This is a simulated response from @${selectedUser.username}. In a real implementation, this would be an AI-generated response based on the user's tweets.`,
+        text: botResponse,
         isBot: true,
       };
-      setMessages((prev) => [...prev, botResponse]);
-    }, 1000);
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Add error message
+      const errorMessage: Message = {
+        id: messages.length + 2,
+        text: "I'm sorry, I encountered an error. Please try again.",
+        isBot: true,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -61,6 +90,7 @@ export const ChatInterface = ({ selectedUser }: ChatInterfaceProps) => {
         inputMessage={inputMessage}
         onInputChange={setInputMessage}
         onSendMessage={handleSendMessage}
+        isLoading={isLoading}
       />
     </div>
   );
