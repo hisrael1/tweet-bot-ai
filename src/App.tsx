@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { UserSelection } from './components/UserSelection';
 import { ChatInterface } from './components/ChatInterface';
+import { LandingPage } from './components/LandingPage';
 
 interface User {
   username: string;
@@ -21,13 +23,33 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {selectedUser ? (
-        <ChatInterface selectedUser={selectedUser} />
-      ) : (
-        <UserSelection onUserSelect={handleUserSelect} isLoading={isLoading} />
-      )}
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route 
+          path="/select" 
+          element={
+            <UserSelection 
+              onUserSelect={handleUserSelect} 
+              isLoading={isLoading} 
+            />
+          } 
+        />
+        <Route 
+          path="/chat" 
+          element={
+            selectedUser ? (
+              <ChatInterface selectedUser={selectedUser} />
+            ) : (
+              <UserSelection 
+                onUserSelect={handleUserSelect} 
+                isLoading={isLoading} 
+              />
+            )
+          } 
+        />
+      </Routes>
+    </Router>
   );
 }
 

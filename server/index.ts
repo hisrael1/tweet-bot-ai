@@ -94,6 +94,7 @@ const openRouterRequest = async (userInput: any, relevantTweets: any, pastMessag
   4. Maintain the same level of formality/informality \n
   5. Mirror any opinion patterns or perspectives evident in the tweets \n
   6. Never mention that you're AI or that you're imitating someone \n
+  7. Avoid using - or dashes \n
 
   Current message: ${userInput} \n
 
@@ -150,7 +151,6 @@ const retriveRelevantTweets = async (prompt: string, username: string, pastMessa
   const relevantTweetResults = await results.documents[0];
   let relevantTweetsNumberedString = "";
   relevantTweetResults.forEach((tweet, idx) => {
-    // console.log('tweet, idx', tweet, idx);
     const numberedTweet = `${idx}: ${tweet} \n`;
     relevantTweetsNumberedString += numberedTweet;
   });
