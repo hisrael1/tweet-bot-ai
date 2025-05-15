@@ -12,7 +12,10 @@
   "description": "",
   "dependencies": {
     "axios": "^1.7.9",
+    "chromadb": "^2.0.1",
+    "chromadb-default-embed": "^2.14.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^4.21.2"
   },
   "devDependencies": {
