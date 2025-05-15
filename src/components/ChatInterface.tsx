@@ -1,20 +1,15 @@
 import { useState } from 'react';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
-
-interface User {
-  username: string;
-  avatar: string;
-}
-
-interface Message {
-  id: number;
-  text: string;
-  isBot: boolean;
-}
+import { Message } from '../../shared/types';
 
 interface ChatInterfaceProps {
   selectedUser: User;
+}
+
+export interface User {
+  username: string;
+  avatar: string;
 }
 
 export const ChatInterface = ({ selectedUser }: ChatInterfaceProps) => {
@@ -25,7 +20,9 @@ export const ChatInterface = ({ selectedUser }: ChatInterfaceProps) => {
       isBot: true,
     },
   ]);
+  console.log('messages', messages);
   const [inputMessage, setInputMessage] = useState('');
+  console.log('inputMessage', inputMessage);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -38,7 +35,7 @@ export const ChatInterface = ({ selectedUser }: ChatInterfaceProps) => {
       text: inputMessage,
       isBot: false,
     };
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev) => [...prev, newMessage].slice(-10));
     setInputMessage('');
     setIsLoading(true);
 
@@ -51,6 +48,7 @@ export const ChatInterface = ({ selectedUser }: ChatInterfaceProps) => {
         body: JSON.stringify({
           prompt: inputMessage,
           user: selectedUser.username,
+          pastMessages: messages
         }),
       });
 

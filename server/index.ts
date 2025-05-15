@@ -7,6 +7,7 @@ dotenv.config();
 import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = 'https://fabxmporizzqflnftavs.supabase.co';
 const supabaseKey = process.env.SUPABASE_ANON_KEY as string;
+import type { Message } from '../shared/types';
 
 const app = express();
 
@@ -21,8 +22,6 @@ app.use(express.json());
 const port = 3000;
 
 const chromaClient = new ChromaClient({ path: "http://localhost:8000" });
-
-const USER_INPUT = "What is the community archive project?";
 
 // delete user tweets and fail silently if it doesn't work
 const deleteOldUserTweetsCollection = async () => {
@@ -79,10 +78,26 @@ const fetchTweets = async (url: string) => {
 };
 
 // this is the request to open router. Returns the text
-const openRouterRequest = async (userInput: any, relevantTweets: any): Promise<string> => {
-  const prompt = `Based off the style, tone, and content of your past tweets, respond to the users question: ${userInput} \n
-      Here is a reference to your past tweets in the form of a numbered string: ${relevantTweets} \n 
-      Respond directly to the user \n`;
+const openRouterRequest = async (userInput: any, relevantTweets: any, pastMessagesString: string): Promise<string> => {
+  const prompt = `You are roleplaying as a Twitter user based on their tweet history. Your 
+  responses should precisely match their writing style, vocabulary, sentence structure, 
+  and personality. \n
+
+  TWITTER PERSONA REFERENCE: ${relevantTweets} \n
+  
+  CONVERSATION HISTORY: ${pastMessagesString} \n
+
+  When responding: \n
+  1. Match the exact tone, attitude, and speech patterns shown in the tweets \n
+  2. Use similar sentence length, punctuation style, and word choices \n
+  3. Include any characteristic emoji usage, slang, or unique phrases \n
+  4. Maintain the same level of formality/informality \n
+  5. Mirror any opinion patterns or perspectives evident in the tweets \n
+  6. Never mention that you're AI or that you're imitating someone \n
+
+  Current message: ${userInput} \n
+
+  Respond exactly as this Twitter user would in a direct message conversation:`;
 
   const response = await fetch(
     "https://openrouter.ai/api/v1/chat/completions",
@@ -108,18 +123,27 @@ const openRouterRequest = async (userInput: any, relevantTweets: any): Promise<s
   return message;
 };
 
+const stringifyConvoHistory = (pastMessages: Message[]) => {
+  let convoHistoryString = '';
+  pastMessages.forEach(message => {
+    const messageStr = `${message.isBot ? "Bot" : "User"}: ${message.text} \n`;
+    convoHistoryString += messageStr;
+  })
+  return convoHistoryString
+}
+
 // main function sets up chroma and retuns the message
-const retriveRelevantTweets = async (prompt: string, username: string) => {
+const retriveRelevantTweets = async (prompt: string, username: string, pastMessages: Message[]) => {
+  const pastMessagesString: string = stringifyConvoHistory(pastMessages);
   await deleteOldUserTweetsCollection();
   const collection = await createNewTweetsCollection();
   const documentsAndIds = await fetchTweets(
     `https://fabxmporizzqflnftavs.supabase.co/storage/v1/object/public/archives/${username}/archive.json`
-    // "https://fabxmporizzqflnftavs.supabase.co/storage/v1/object/public/archives/defenderofbasic/archive.json"
   );
   await collection.add(documentsAndIds);
 
   const results = await collection.query({
-    queryTexts: USER_INPUT, // Chroma will embed this for you
+    queryTexts: prompt, // Chroma will embed this for you
     nResults: 10, // how many results to return
   });
 
@@ -133,7 +157,8 @@ const retriveRelevantTweets = async (prompt: string, username: string) => {
 
   const responseMessage = await openRouterRequest(
     prompt,
-    relevantTweetsNumberedString
+    relevantTweetsNumberedString,
+    pastMessagesString
   );
 
   return responseMessage
@@ -148,8 +173,9 @@ app.listen(port, () => {
 });
 
 app.post("/api/query", async (req, res) => {
-  const { prompt, user } = req.body;
-  const message = await retriveRelevantTweets(prompt, user);
+  const { prompt, user, pastMessages } = req.body;
+  console.log('pastMessages', pastMessages);
+  const message = await retriveRelevantTweets(prompt, user, pastMessages);
   res.json(message);
 });
 
