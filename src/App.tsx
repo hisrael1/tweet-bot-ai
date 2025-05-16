@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { UserSelection } from './components/UserSelection';
-import { ChatInterface } from './components/ChatInterface';
-import { LandingPage } from './components/LandingPage';
+import UserSelection from './components/pages/UserSelection';
+import ChatInterface from './components/pages/ChatInterface';
+import LandingPage from './components/pages/LandingPage';
 
 interface User {
   username: string;

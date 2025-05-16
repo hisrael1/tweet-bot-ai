@@ -6,6 +6,7 @@ import cors from 'cors';
 dotenv.config();
 import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = 'https://fabxmporizzqflnftavs.supabase.co';
+// const supabaseUrl = process.env.SUPABASE_URL as string;
 const supabaseKey = process.env.SUPABASE_ANON_KEY as string;
 import type { Message } from '../shared/types';
 
@@ -26,7 +27,6 @@ const chromaClient = new ChromaClient({ path: "http://localhost:8000" });
 // delete user tweets and fail silently if it doesn't work
 const deleteOldUserTweetsCollection = async () => {
   try {
-    console.log("try to delete user tweets");
     await chromaClient.deleteCollection({
       name: "user_tweets",
     });
@@ -47,11 +47,13 @@ const createNewTweetsCollection = async () => {
 
 // fetch tweets and return them as an obj with keys document and id
 const fetchTweets = async (url: string) => {
-  console.log("fetching tweets to put in chroma");
   const response = await fetch(url);
   const data = await response.json();
+  if (!data.tweets || data.tweets.length === 0) {
+    throw new Error("No tweets found for this user");
+  }
   let recentTweets;
-  if (data.tweets.length > 500) {
+  if (data?.tweets?.length > 500) {
     recentTweets = data.tweets.slice(0, 500);
   } else {
     recentTweets = data.tweets
@@ -78,10 +80,12 @@ const fetchTweets = async (url: string) => {
 };
 
 // this is the request to open router. Returns the text
-const openRouterRequest = async (userInput: any, relevantTweets: any, pastMessagesString: string): Promise<string> => {
+const openRouterRequest = async (userInput: any, relevantTweets: any, pastMessagesString: string, username: string): Promise<string> => {
   const prompt = `You are roleplaying as a Twitter user based on their tweet history. Your 
   responses should precisely match their writing style, vocabulary, sentence structure, 
   and personality. \n
+
+  username: ${username} \n
 
   TWITTER PERSONA REFERENCE: ${relevantTweets} \n
   
@@ -95,6 +99,7 @@ const openRouterRequest = async (userInput: any, relevantTweets: any, pastMessag
   5. Mirror any opinion patterns or perspectives evident in the tweets \n
   6. Never mention that you're AI or that you're imitating someone \n
   7. Avoid using - or dashes \n
+  8: Don't use emojis. \n
 
   Current message: ${userInput} \n
 
@@ -120,6 +125,7 @@ const openRouterRequest = async (userInput: any, relevantTweets: any, pastMessag
     }
   );
   const data = await response.json();
+  console.log('data', data);
   const message = data?.choices[0]?.message?.content;
   return message;
 };
@@ -148,7 +154,7 @@ const retriveRelevantTweets = async (prompt: string, username: string, pastMessa
     nResults: 10, // how many results to return
   });
 
-  const relevantTweetResults = await results.documents[0];
+  const relevantTweetResults = results.documents[0];
   let relevantTweetsNumberedString = "";
   relevantTweetResults.forEach((tweet, idx) => {
     const numberedTweet = `${idx}: ${tweet} \n`;
@@ -158,7 +164,8 @@ const retriveRelevantTweets = async (prompt: string, username: string, pastMessa
   const responseMessage = await openRouterRequest(
     prompt,
     relevantTweetsNumberedString,
-    pastMessagesString
+    pastMessagesString,
+    username
   );
 
   return responseMessage
@@ -173,11 +180,23 @@ app.listen(port, () => {
 });
 
 app.post("/api/query", async (req, res) => {
-  const { prompt, user, pastMessages } = req.body;
-  console.log('pastMessages', pastMessages);
-  const message = await retriveRelevantTweets(prompt, user, pastMessages);
-  res.json(message);
+  try {
+    const { prompt, user, pastMessages } = req.body;
+    const message = await retriveRelevantTweets(prompt, user, pastMessages);
+    res.json(message);
+  } catch (error) {
+    console.error('Error in /api/query:', error);
+    res.status(400).json({ 
+      error: error instanceof Error ? error.message : "An unexpected error occurred" 
+    });
+  }
 });
+
+// app.post("/api/query", async (req, res) => {
+//   const { prompt, user, pastMessages } = req.body;
+//   const message = await retriveRelevantTweets(prompt, user, pastMessages);
+//   res.json(message);
+// });
 
 app.get("/api/allUsernames", async (req, res) => {
   try {    
