@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.8",
     "axios": "^1.7.9",
     "chromadb": "^2.0.1",
     "chromadb-default-embed": "^2.14.0",
