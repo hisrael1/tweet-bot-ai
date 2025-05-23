@@ -1,9 +1,14 @@
-import type { Message } from "../../../shared/types";
 import {
   deleteOldUserTweetsCollection,
   createNewTweetsCollection,
 } from "./chroma";
 import { fetchTweets } from "./tweetService";
+
+interface Message {
+  id: number;
+  text: string;
+  isBot: boolean;
+}
 
 // this is the request to open router. Returns the text
 export const openRouterRequest = async (
