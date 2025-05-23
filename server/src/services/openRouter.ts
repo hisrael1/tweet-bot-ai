@@ -35,8 +35,7 @@ export const openRouterRequest = async (
     Current message: ${userInput} \n
   
     Respond exactly as this Twitter user would in a direct message conversation:`;
-
-  const response = await fetch(
+    const response = await fetch(
     "https://openrouter.ai/api/v1/chat/completions",
     {
       method: "POST",
@@ -75,20 +74,25 @@ export const retriveRelevantTweets = async (
   username: string,
   pastMessages: Message[]
 ) => {
+  console.log('prompt', prompt);
   const pastMessagesString: string = stringifyConvoHistory(pastMessages);
   await deleteOldUserTweetsCollection();
   const collection = await createNewTweetsCollection();
-  const documentsAndIds = await fetchTweets(
-    `https://fabxmporizzqflnftavs.supabase.co/storage/v1/object/public/archives/${username}/archive.json`
-  );
+  // const documentsAndIds = await fetchTweets(
+  //   `https://fabxmporizzqflnftavs.supabase.co/storage/v1/object/public/archives/${username}/archive.json`
+  // );
+  const documentsAndIds = await fetchTweets(username);
   await collection.add(documentsAndIds);
 
   const results = await collection.query({
     queryTexts: prompt, // Chroma will embed this for you
+    // queryTexts: userInput, // Chroma will embed this for you
     nResults: 10, // how many results to return
   });
 
-  const relevantTweetResults = await results.documents[0];
+  console.log('results', results);
+
+  const relevantTweetResults = results.documents[0];
   let relevantTweetsNumberedString = "";
   relevantTweetResults.forEach((tweet, idx) => {
     const numberedTweet = `${idx}: ${tweet} \n`;

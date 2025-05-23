@@ -1,7 +1,7 @@
-import Footer from '../../shared/Footer';
-import NavBar from '../../shared/NavBar';
-import HeroSection from './HeroSection';
-import FeaturesSection from './FeaturesSection';
+import Footer from "../../shared/Footer";
+import NavBar from "../../shared/NavBar";
+import HeroSection from "./HeroSection";
+import FeaturesSection from "./FeaturesSection";
 
 const LandingPage = () => {
   return (
@@ -12,6 +12,6 @@ const LandingPage = () => {
       <Footer />
     </div>
   );
-}; 
+};
 
 export default LandingPage;
