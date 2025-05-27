@@ -19,7 +19,7 @@ export const openRouterRequest = async (
 ): Promise<string> => {
   const prompt = `You are roleplaying as a Twitter user based on their tweet history. Your 
     responses should precisely match their writing style, vocabulary, sentence structure, 
-    and personality. \n
+    and personality.  \n
   
     username: ${username} \n
   
