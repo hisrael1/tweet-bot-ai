@@ -22,6 +22,7 @@ const UserSelection = ({ onUserSelect, isLoading }: UserSelectionProps) => {
     const fetchUsernames = async () => {
       try {
         const response = await fetch('http://localhost:3000/api/allUsernames');
+        // const response = await fetch('https://tweet-bot-ai-production.up.railway.app/api/allUsernames');
         const data = await response.json();
         const transformedUsers = data.usernames.map((user: { username: string }) => ({
           username: user.username,

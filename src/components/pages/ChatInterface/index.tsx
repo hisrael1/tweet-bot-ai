@@ -39,6 +39,7 @@ const ChatInterface = ({ selectedUser }: ChatInterfaceProps) => {
 
     try {
       const response = await fetch("http://localhost:3000/api/query", {
+      // const response = await fetch("https://tweet-bot-ai-production.up.railway.app/api/query", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

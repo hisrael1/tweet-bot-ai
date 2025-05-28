@@ -1,6 +1,7 @@
 import {
   deleteOldUserTweetsCollection,
   createNewTweetsCollection,
+  getCurrentCollection
 } from "./chroma";
 import { fetchTweets } from "./tweetService";
 
@@ -79,23 +80,24 @@ export const retriveRelevantTweets = async (
   username: string,
   pastMessages: Message[]
 ) => {
-  console.log('prompt', prompt);
+  // console.log('prompt', prompt);
   const pastMessagesString: string = stringifyConvoHistory(pastMessages);
-  await deleteOldUserTweetsCollection();
-  const collection = await createNewTweetsCollection();
-  // const documentsAndIds = await fetchTweets(
-  //   `https://fabxmporizzqflnftavs.supabase.co/storage/v1/object/public/archives/${username}/archive.json`
-  // );
-  const documentsAndIds = await fetchTweets(username);
-  await collection.add(documentsAndIds);
+  console.log('pastMessagesString', pastMessagesString);
+  let collection = await getCurrentCollection();
+  
+  if (!collection || collection.metadata?.username !== username) {
+    await deleteOldUserTweetsCollection();
+    collection = await createNewTweetsCollection(username);
+    const documentsAndIds = await fetchTweets(username);
+    await collection.add(documentsAndIds);
+  } 
 
   const results = await collection.query({
-    queryTexts: prompt, // Chroma will embed this for you
-    // queryTexts: userInput, // Chroma will embed this for you
-    nResults: 10, // how many results to return
+    queryTexts: prompt, 
+    nResults: 10, 
   });
 
-  console.log('results', results);
+  // console.log('results', results);
 
   const relevantTweetResults = results.documents[0];
   let relevantTweetsNumberedString = "";

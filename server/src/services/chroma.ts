@@ -3,6 +3,14 @@ import { ChromaClient } from "chromadb";
 const chromaClient = new ChromaClient({ path: "http://localhost:8000" });
 
 // delete user tweets and fail silently if it doesn't work
+export const getCurrentCollection = async () => {
+  try {
+    return await chromaClient.getCollection({ name: "user_tweets" } as any);
+  } catch {
+    return null;
+  }
+};
+
 export const deleteOldUserTweetsCollection = async () => {
   try {
     await chromaClient.deleteCollection({
@@ -14,11 +22,11 @@ export const deleteOldUserTweetsCollection = async () => {
 };
 
 // create new tweets collection
-export const createNewTweetsCollection = async () => {
+export const createNewTweetsCollection = async (username: string) => {
   return await chromaClient.createCollection({
     name: "user_tweets",
     metadata: {
-      description: "Collection for tweet history to power chatbot",
+      username: username,
     },
   });
 };
